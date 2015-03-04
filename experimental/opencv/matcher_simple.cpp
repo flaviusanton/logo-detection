@@ -1,3 +1,4 @@
+#include <iostream>
 #include <stdio.h>
 #include "opencv2/core/core.hpp"
 #include "opencv2/features2d/features2d.hpp"
@@ -5,6 +6,7 @@
 #include "opencv2/nonfree/nonfree.hpp"
 
 using namespace cv;
+using namespace std;
 
 static void help()
 {
@@ -46,10 +48,65 @@ int main(int argc, char** argv)
     matcher.match(descriptors1, descriptors2, matches);
 
     // drawing the results
-    namedWindow("matches", 1);
+    namedWindow("matches-before", 1);
     Mat img_matches;
     drawMatches(img1, keypoints1, img2, keypoints2, matches, img_matches);
-    imshow("matches", img_matches);
+    imshow("matches-before", img_matches);
+
+    // remove matches that map to the same point too much
+    vector<DMatch> clean_matches;
+
+    for (int i = 0; i < matches.size(); ++i) {
+	    Point2f p1, p2;
+	    p1 = keypoints1[matches[i].queryIdx].pt;
+	    p2 = keypoints2[matches[i].trainIdx].pt;
+
+	    int n_p2 = 0;
+	    for (int j = 0; j < matches.size(); ++j) {
+		    if (keypoints2[matches[j].trainIdx].pt == p2)
+			    n_p2++;
+	    }
+
+	    cout << p2 << " " << n_p2 << endl;
+
+	    if (n_p2 < 3)
+		    clean_matches.push_back(matches[i]);
+    }
+
+    matches = clean_matches;
+
+    // drawing the results
+    namedWindow("matches-after", 1);
+    drawMatches(img1, keypoints1, img2, keypoints2, matches, img_matches);
+    imshow("matches-after", img_matches);
+
+    int positives = 0;
+    int negatives = 0;
+    int zeroish = 0;
+
+    for (int i = 0; i < matches.size(); ++i) {
+	    Point2f p1, p2;
+	    p1 = keypoints1[matches[i].queryIdx].pt;
+	    p2 = keypoints2[matches[i].trainIdx].pt;
+
+	    float m;
+	    if (p1.x == p2.x)
+		    m = 10000000000;
+	    else {
+		    m = (p2.y - p1.y) / (p2.x - p1.x);
+	    }
+
+	    cout << p1 << " " << p2 << " " << p1 - p2 << "   " << m << endl;
+	    if (m >= 1)
+		    positives++;
+	    else if (m <= -1)
+		    negatives++;
+	    else
+		    zeroish++;
+    }
+
+    cout << "Pos: " << positives << "  Neg: " << negatives << endl;
+    cout << "Zeroish: " << zeroish << endl;
 
     waitKey(0);
     return 0;
