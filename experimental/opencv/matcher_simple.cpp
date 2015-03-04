@@ -21,8 +21,8 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    Mat img1 = imread(argv[1], CV_LOAD_IMAGE_GRAYSCALE);
-    Mat img2 = imread(argv[2], CV_LOAD_IMAGE_GRAYSCALE);
+    Mat img1 = imread(argv[1], CV_LOAD_IMAGE_COLOR);
+    Mat img2 = imread(argv[2], CV_LOAD_IMAGE_COLOR);
 
     if(img1.empty() || img2.empty())
     {
@@ -31,7 +31,7 @@ int main(int argc, char** argv)
     }
 
     // detecting keypoints
-    SurfFeatureDetector detector(400);
+    SurfFeatureDetector detector(800);
     vector<KeyPoint> keypoints1, keypoints2;
     detector.detect(img1, keypoints1);
     detector.detect(img2, keypoints2);
@@ -47,11 +47,35 @@ int main(int argc, char** argv)
     vector<DMatch> matches;
     matcher.match(descriptors1, descriptors2, matches);
 
+    // distance stuff
+    double max_dist = 0, min_dist = 100;
+
+    for (int i = 0; i < descriptors1.rows; ++i) {
+	    double dist = matches[i].distance;
+	    if (dist < min_dist)
+		    min_dist = dist;
+	    if (dist > max_dist)
+		    max_dist = dist;
+    }
+
+    vector<DMatch> good_matches;
+    for (int i = 0; i < descriptors1.rows; ++i) {
+	    if (matches[i].distance < 3 * min_dist) {
+		    good_matches.push_back(matches[i]);
+	    }
+    }
+    // drawing the good matches
+    namedWindow("matches-good", 1);
+    Mat img_matches;
+    drawMatches(img1, keypoints1, img2, keypoints2, good_matches, img_matches);
+    imshow("matches-good", img_matches);
+
     // drawing the results
     namedWindow("matches-before", 1);
-    Mat img_matches;
+    img_matches;
     drawMatches(img1, keypoints1, img2, keypoints2, matches, img_matches);
     imshow("matches-before", img_matches);
+
 
     // remove matches that map to the same point too much
     vector<DMatch> clean_matches;
@@ -107,6 +131,19 @@ int main(int argc, char** argv)
 
     cout << "Pos: " << positives << "  Neg: " << negatives << endl;
     cout << "Zeroish: " << zeroish << endl;
+
+    // TODO
+    /*
+    vector<Point2f> obj;
+    vector<Point2f> scene;
+    for (int i = 0; i < matches.size(); ++i) {
+	    obj.push_back(keypoints1[matches[i].queryIdx].pt;
+	    scene.push_back(keypoints2[matches[i].trainIdx].pt;
+    }
+
+    Mat H = findHomography(obj, scene, CV_RANSAC);
+
+    */
 
     waitKey(0);
     return 0;
