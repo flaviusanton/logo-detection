@@ -1,6 +1,5 @@
 *.class
 *.log
-lib/
 config/
 
 # sbt specific
