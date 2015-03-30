@@ -2,18 +2,20 @@ package fetch
 
 import services.Service
 import services.TwitterService
+
 import twitter4j._
 import twitter4j.conf.ConfigurationBuilder
+
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.BlockingQueue
+
 
 class TwitterFetcher extends Fetcher {
 
   private val configFilename = "config/twitter.config"
   private var streamer: TwitterStream = _
-  private var limit: Integer = 100
   private val queue: BlockingQueue[Status] = new LinkedBlockingQueue()
-
+  
   def connect(service: Service): Fetcher = {
     val map = service.loadConfig(configFilename)
 
@@ -26,28 +28,21 @@ class TwitterFetcher extends Fetcher {
     this
   }
 
-  def setLimit(limit: Integer): Fetcher = {
-    this.limit = limit
-    this
-  }
-
   def startAsyncFetch(): Fetcher = {
     streamer.sample()
     this
   }
 
-  def consume(n: Integer): Seq[Any] = {
-    var arr: Array[Status] = Array()
+  def consume(n: Integer): Array[Object] = {
+    var arr: Array[Object] = Array()
     (1 to n) foreach (_ => arr :+= queue.take)
     arr
   }
 
   def streamListener = new StatusListener() {
     def onStatus(status: Status) {
-      if (queue.size() < limit) {
         if (!status.getMediaEntities.isEmpty)
           queue.offer(status)
-      }
     }
 
     def onDeletionNotice(statusDeletionNotice: StatusDeletionNotice) {}
