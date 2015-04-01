@@ -6,11 +6,11 @@ import messages.DownloadMessage
 
 object Main {
   
-  val FIFO_PATH = "links.fifo"
+  val OUTFIFO_PATH = "links.fifo"
 
   def main(args: Array[String]) {
     val fetcher = new TwitterFetcher().connect(TwitterService).startAsyncFetch()
-    val producer = new DummyProducer(FIFO_PATH)
+    val producer = new DummyProducer(OUTFIFO_PATH)
     
     while (true) {
       val urls = fetcher.consume(fetcher.CHUNK_SIZE).flatMap { x =>

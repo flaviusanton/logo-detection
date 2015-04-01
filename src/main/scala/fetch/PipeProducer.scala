@@ -17,8 +17,8 @@ class DummyProducer(fifoPath: String) extends Producer[DownloadMessage] {
   }
 
   def write(message: DownloadMessage) = {
-    pw.write(message.getLink() + "\n")
+    pw.write(message + "\n")
     pw.flush()
   }
-  
+
 }

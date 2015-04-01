@@ -1,23 +1,12 @@
 package imgretrieve
 
-import messages.Consumer
-import scala.io.Source
+import scala.util.Try
 
-
-class MemoryImageDownloader(fifoPath: String) extends ImageDownloader with Consumer {
+class MemoryImageDownloader extends ImageDownloader {
   
-  val reader = Source.fromFile(fifoPath).bufferedReader()
-
-  def downloadImage(link: String): Unit = {
+  override def downloadImage(link: String): Try[Array[Byte]] = {
     println(s"Retrieving ${link}")
+    super.downloadImage(link)
   }
 
-  def run() = {
-    while (true) {
-      val link = reader.readLine()
-      
-      if (link != null)
-        downloadImage(link)
-    }
-  }
 }
