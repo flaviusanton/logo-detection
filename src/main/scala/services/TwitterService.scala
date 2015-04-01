@@ -6,13 +6,9 @@ import scala.collection.immutable.Map
 object TwitterService extends Service {
 
   def loadConfig(configFilename: String): Map[String, String] = {
-    var map: Map[String, String] = Map()
-
-    for (line <- Source.fromFile(configFilename).getLines()) {
-      val arr : Array[String] = line.split("=")
-      map += (arr(0) -> (if (arr.length > 1) arr(1) else ""))
-    }
-    map
+    Source.fromFile(configFilename).getLines().map(_.split("=")).collect {
+      case Array(key, value) => (key -> value)
+    }.toMap
   }
 
   def buildConfig(map: Map[String, String]): Any = {

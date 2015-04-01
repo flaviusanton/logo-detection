@@ -1,4 +1,4 @@
-package storage
+package imgretrieve
 
 // let's decouple the downloading of images from storing them
 // you can create a trait that will handle storing and loading images

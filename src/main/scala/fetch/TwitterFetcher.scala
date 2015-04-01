@@ -18,6 +18,7 @@ class TwitterFetcher extends Fetcher {
   
   def connect(service: Service): Fetcher = {
     val map = service.loadConfig(configFilename)
+    println(map)
 
     streamer = service.buildConfig(map) match {
       case configBuilder: ConfigurationBuilder => new TwitterStreamFactory(configBuilder.build()).getInstance
