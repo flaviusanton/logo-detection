@@ -39,9 +39,15 @@ the keys and secrets):
     `accessToken=<your access token>`  
     `accessTokenSecret=<your access token secret>`  
 
-7. Run the whole thing:
+7. Create two named pipes, in order to run the PipeConsumer/PipeProducer pairs.
 
-    `$ sbt run`
+    `$ cd $PATH_TO_LOGO_DETECTION_REPO`  
+    `$ mkfifo links.fifo images.fifo`
+
+8. Run each component (only pipe-based fetch and download implemented so far):
+
+    `$ sbt "run-main fetch.Main"`  
+    `$ sbt "run-main imgretrieve.Main"`
 
 ## Setting up an Eclipse project
 
