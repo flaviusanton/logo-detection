@@ -1,5 +1,3 @@
 package messages
 
-trait Message {
-
-}
+trait Message

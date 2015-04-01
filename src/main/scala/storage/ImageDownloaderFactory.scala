@@ -2,13 +2,15 @@ package storage
 
 import scala.io.Source
 
+// no need to call this factory it only creates a single object
+// A factory would have params
 object ImageDownloaderFactory {
   
   private val configFilename = "config/imageDownloader.config"
   
   private val downloader = {
-    val config = loadConfig()
-     
+    val config = loadConfig(configFilename)
+      // you can use Option class to avoid this kind of code
       if (config("class") == "DiskImageDownloader")
         new DiskImageDownloader(config("downloadPath"))
       else
@@ -21,14 +23,10 @@ object ImageDownloaderFactory {
       case _ => throw new ClassNotFoundException
     }
   }
-  
-  def loadConfig(): Map[String, String] = {
-    var map: Map[String, String] = Map()
-    
-    for (line <- Source.fromFile(configFilename).getLines()) {
-      val arr : Array[String] = line.split("=")
-      map += (arr(0) -> (if (arr.length > 1) arr(1) else ""))
-    }
-    map
+  // let's avoid using vars if we can :D
+  def loadConfig(configFilename: String): Map[String, String] = {
+    Source.fromFile(configFilename).getLines().map(_.split("=")).collect {
+      case Array(key, value) => (key -> value)
+    }.toMap
   }
 }
