@@ -7,7 +7,7 @@ import messages.DownloadMessage
 object Main {
   
   val FIFO_PATH = "links.fifo"
-  
+
   def main(args: Array[String]) {
     val fetcher = new TwitterFetcher().connect(TwitterService).startAsyncFetch()
     val producer = new DummyProducer(FIFO_PATH)
@@ -21,7 +21,7 @@ object Main {
       }
       
       val messages = urls.map(new DownloadMessage(_))
-      messages.map(producer.send(_))
+      producer.send(messages)
     }
   }
 }

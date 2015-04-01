@@ -2,7 +2,6 @@ package fetch
 
 import messages.Producer
 import messages.DownloadMessage
-import imgretrieve.DummyConsumer
 import java.io.PrintWriter
 import java.io.File
 
@@ -21,4 +20,5 @@ class DummyProducer(fifoPath: String) extends Producer[DownloadMessage] {
     pw.write(message.getLink() + "\n")
     pw.flush()
   }
+  
 }
