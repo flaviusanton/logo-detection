@@ -1,8 +1,9 @@
 package messages
 
 import scala.util.Try
-import org.apache.sling.commons.json.JSONException
 import twitter4j.JSONObject
+import twitter4j.JSONException
+import org.apache.commons.codec.binary.Base64
 
 sealed trait Message {
   def toJSON(): JSONObject
@@ -27,7 +28,7 @@ case class DownloadMessage(imageLink: String="") extends Message {
     val msgType = json.get("type")
 
     if (msgType != this.getClass.getName)
-      throw new JSONException("Message type non existent: {msgType}.")
+      throw new JSONException("Message type non existent: ${msgType}.")
 
     new DownloadMessage(json.get("imageLink").toString())
   })
@@ -39,10 +40,24 @@ case class StoreMessage(imageLink: String="", binImage: Array[Byte]=null) extend
   def getImage() = binImage
 
   def toJSON() = {
-    new JSONObject()
+    val json = new JSONObject()
+    json.put("type", this.getClass.getName)
+    json.put("imageLink", imageLink)
+
+    val base64 = Base64.encodeBase64String(binImage)
+    json.put("binImage", base64)
   }
 
   def fromJSON(json: JSONObject) = Try({
-    new StoreMessage("bla", null)
+    val msgType = json.get("type")
+
+    if (msgType != this.getClass.getName)
+      throw new JSONException("Message type non existent: ${msgType}.")
+
+    val imageLink = json.get("imageLink").toString()
+    val base64Image = json.get("binImage").toString()
+    val binImage = Base64.decodeBase64(base64Image)
+
+    new StoreMessage(imageLink, binImage)
   })
 }

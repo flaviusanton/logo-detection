@@ -3,12 +3,11 @@ package imgretrieve
 import messages.Producer
 import messages.StoreMessage
 import java.io.File
-import java.io.DataOutputStream
 import messages.StoreMessage
-import java.io.FileOutputStream
+import java.io.PrintWriter
 
 class PipeProducer(fifoPath: String) extends Producer[StoreMessage] {
-  val writer = new DataOutputStream(new FileOutputStream(new File(fifoPath)))
+  val pw = new PrintWriter(new File(fifoPath))
 
   def send(message: StoreMessage): Unit = {
     message match {
@@ -18,7 +17,7 @@ class PipeProducer(fifoPath: String) extends Producer[StoreMessage] {
   }
 
   def write(msg: StoreMessage) = {
-    println(s"Sending to storage: {msg.getLink}")
+    pw.write(msg + "\n")
   }
   
 }
