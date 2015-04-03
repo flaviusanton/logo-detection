@@ -22,7 +22,7 @@ class PipeConsumer(fifoPath: String,
         val downloadMessage = new DownloadMessage().fromJSON(json)
         
         if (downloadMessage.isSuccess) {
-          val link = downloadMessage.get.asInstanceOf[DownloadMessage].getLink()
+          val link = downloadMessage.get.asInstanceOf[DownloadMessage].imageLink
           val result = downloader.downloadImage(link)
         
           if (result.isSuccess) {
