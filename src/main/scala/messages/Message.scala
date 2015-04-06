@@ -16,7 +16,6 @@ sealed trait Message {
 }
 
 case class DownloadMessage(imageLink: String="") extends Message {
-  def getLink() = imageLink
 
   def toJSON() = {
     val json = new JSONObject
@@ -60,4 +59,14 @@ case class StoreMessage(imageLink: String="", binImage: Array[Byte]=null) extend
 
     new StoreMessage(imageLink, binImage)
   })
+}
+
+
+case class TestMessage(message: String) extends Message {
+
+  def toJSON() = {
+    new JSONObject
+  }
+
+  def fromJSON(json: JSONObject): Try[Message] = Try(TestMessage(""))
 }
