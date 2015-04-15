@@ -1,7 +1,7 @@
 package messages.serializers
 
 import messages._
-import spray.json.{DefaultJsonProtocol, RootJsonFormat, _}
+import spray.json.{ DefaultJsonProtocol, RootJsonFormat, _ }
 
 object MessageJsonProtocol extends DefaultJsonProtocol {
   implicit val downloadMessageFormat = jsonFormat1(DownloadMessage)
