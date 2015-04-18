@@ -7,5 +7,5 @@ trait ImageKeeper {
 
   def getImage(link: String): Try[File]
 
-  def putImage(link: String)
+  def putImage(link: String, bytes: Array[Byte]): Try[File]
 }

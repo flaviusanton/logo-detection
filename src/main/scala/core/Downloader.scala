@@ -5,7 +5,7 @@ import java.net.{ HttpURLConnection, URL }
 
 object Downloader {
 
-  protected def downloadImage(link: String): Try[Array[Byte]] = Try({
+  def downloadImage(link: String): Try[Array[Byte]] = Try({
     val url = new URL(link)
     val conn = url.openConnection().asInstanceOf[HttpURLConnection]
     conn.setRequestMethod("GET")
