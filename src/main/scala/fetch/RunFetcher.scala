@@ -7,7 +7,7 @@ import messages.serializers.{ MessageSerializers, MessageJsonSerializer }
 import messages.KafkaClient
 import messages.DownloadMessage
 
-object Main {
+object RunFetcher {
 
   val TOPIC = "toDownload"
 
@@ -15,7 +15,7 @@ object Main {
     import MessageSerializers._
 
     val fetcher = new TwitterFetcher().connect(TwitterService).startAsyncFetch()
-    val kafka = new KafkaClient[DownloadMessage, DownloadMessage](TOPIC, null)
+    val kafkaProducer = new KafkaClient[DownloadMessage](TOPIC)
 
     while (true) {
       val urls = fetcher.consume(fetcher.CHUNK_SIZE).flatMap { x =>
@@ -26,7 +26,7 @@ object Main {
       }
 
       val messages = urls.map(new DownloadMessage(_))
-      kafka.send(messages)
+      kafkaProducer.send(messages)
     }
   }
 }

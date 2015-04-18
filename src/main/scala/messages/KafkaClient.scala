@@ -17,15 +17,14 @@ import java.util.concurrent.LinkedBlockingQueue
  * This will be the Queue client for each component, having both producer and
  * consumer logic.
  */
-class KafkaClient[P <: Message, C <: Message](outTopic: String, inTopic: String)(implicit pserializer: MessageJsonSerializer[P],
-                                                                                 cserializer: MessageJsonSerializer[C]) {
+class KafkaClient[M <: Message](topic: String)(implicit serializer: MessageJsonSerializer[M]) {
 
   val NUM_THREADS = 4
 
   lazy val producer = new Producer[String, String](configProducer)
   lazy val consumer = Consumer.createJavaConsumerConnector(configConsumer)
   lazy val executor = Executors.newFixedThreadPool(NUM_THREADS)
-  lazy val consumerQ = new LinkedBlockingQueue[C]
+  lazy val consumerQ = new LinkedBlockingQueue[M]
 
   def configProducer(): ProducerConfig = {
     val props = new Properties
@@ -49,28 +48,28 @@ class KafkaClient[P <: Message, C <: Message](outTopic: String, inTopic: String)
     new ConsumerConfig(props)
   }
 
-  def send(message: P) = {
+  def send(message: M) = {
     import MessageSerializers._
 
-    val data = new KeyedMessage[String, String](outTopic, pserializer.serialize(message))
+    val data = new KeyedMessage[String, String](topic, serializer.serialize(message))
     producer.send(data)
   }
 
-  def send(messages: Array[P]): Unit = {
+  def send(messages: Array[M]): Unit = {
     messages.foreach(send(_))
   }
 
   def consumerStart(): Unit = {
     val map = new HashMap[String, Integer]
-    map.put(inTopic, NUM_THREADS)
+    map.put(topic, NUM_THREADS)
     val consumerMap = consumer.createMessageStreams(map)
-    val streams = consumerMap.get(inTopic)
+    val streams = consumerMap.get(topic)
 
     import scala.collection.JavaConversions._
     streams.foreach(x => executor.submit(new Work(x)))
   }
 
-  def receive(): C = consumerQ.take
+  def receive(): M = consumerQ.take
 
   class Work(stream: KafkaStream[Array[Byte], Array[Byte]]) extends Runnable {
 
@@ -79,7 +78,7 @@ class KafkaClient[P <: Message, C <: Message](outTopic: String, inTopic: String)
 
       while (it.hasNext()) {
         val rawMsg = it.next().message()
-        val msg: C = cserializer.deserialize(new String(rawMsg.map(_.toChar)))
+        val msg: M = serializer.deserialize(new String(rawMsg.map(_.toChar)))
         consumerQ.offer(msg)
       }
     }
