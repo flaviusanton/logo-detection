@@ -1,16 +1,26 @@
 package imgretrieve
 
+import messages.{ DownloadMessage, KafkaClient, TestMessage }
+import messages.serializers.MessageSerializers
+
 object Main {
 
-  val INFIFO_PATH = "links.fifo"
-  val OUTFIFO_PATH = "images.fifo"
+  val INTOPIC = "toDownload"
+  val OUTTOPIC = "TODO"
 
   def main(args: Array[String]) {
-    val downloader = new MemoryImageDownloader
-    val producer = new PipeProducer(OUTFIFO_PATH)
-    val consumer = new PipeConsumer(INFIFO_PATH, downloader, producer)
-    
-    consumer.run()
+    import MessageSerializers._
+
+    val keeper = new DiskImageKeeper
+    val kafka = new KafkaClient[TestMessage, DownloadMessage](OUTTOPIC, INTOPIC)
+
+    kafka.consumerStart()
+
+    while (true) {
+      val msg = kafka.receive
+      println(msg.imageLink)
+      keeper.putImage(msg.imageLink)
+    }
   }
 
 }
