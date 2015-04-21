@@ -4,6 +4,8 @@ import imgretrieve.DiskImageKeeper
 import messages.{ DetectMessage, KafkaClient, TestMessage }
 import messages.serializers.MessageSerializers
 
+import org.opencv.core.Core
+
 object RunDetector {
 
   val INTOPIC = "toDetect"
@@ -11,6 +13,9 @@ object RunDetector {
   val trainLogos = Array("google", "facebook", "hootsuite")
 
   def main(args: Array[String]) {
+    // load native OpenCV library
+    System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+
     import MessageSerializers._
 
     val keeper = new DiskImageKeeper
