@@ -13,10 +13,13 @@ import imgretrieve.DiskImageKeeper
 import java.io.File
 import scala.collection.mutable.HashMap
 import scala.util.Try
+import scala.collection.mutable.ArrayBuffer
 
 class LogoDetector(trainLogos: Array[String]) extends Detector {
 
   val LOGODIR = "/train-logos/"
+  val MATCH_THRESHOLD = 0.33 // TODO: for testing purposes
+
   private val keeper = new DiskImageKeeper
   private val trainImgMap = new HashMap[String, Array[String]]
 
@@ -28,6 +31,8 @@ class LogoDetector(trainLogos: Array[String]) extends Detector {
 
   def detect(imageLink: String): Array[String] = {
     val imFile = keeper.getImage(imageLink)
+    val result = ArrayBuffer[String]()
+
     if (imFile.isSuccess) {
       trainLogos.foreach { logo =>
         val trainImgs = trainImgMap.get(logo)
@@ -37,6 +42,9 @@ class LogoDetector(trainLogos: Array[String]) extends Detector {
           case Some(x) => {
             val score = detectScore(imFile.get.getAbsolutePath, x)
             println(s"Score with ${logo} for ${imageLink}: ${score}")
+
+            if (score < MATCH_THRESHOLD)
+              result.append(logo)
           }
         }
 
@@ -45,7 +53,7 @@ class LogoDetector(trainLogos: Array[String]) extends Detector {
       System.err.println(s"Failed to load image ${imageLink}")
     }
 
-    return Array("string")
+    return result.toArray
   }
 
   def detectScore(imgQuery: String, trainImgs: Array[String]): Double = {

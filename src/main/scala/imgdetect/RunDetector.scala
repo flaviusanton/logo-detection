@@ -27,7 +27,9 @@ object RunDetector {
 
     while (true) {
       val msg = kafkaConsumer.receive()
-      detector.detect(msg.imageLink)
+      val matchedLogos = detector.detect(msg.imageLink)
+
+      matchedLogos.map(println)
     }
   }
 }
