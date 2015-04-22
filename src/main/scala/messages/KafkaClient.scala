@@ -11,7 +11,7 @@ import messages.serializers.MessageJsonSerializer
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kafka.consumer.KafkaStream
-import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.LinkedBlockingQueue
 
 /**
  * This will be the Queue client for each component, having both producer and
@@ -24,10 +24,7 @@ class KafkaClient[M <: Message](topic: String)(implicit serializer: MessageJsonS
   lazy val producer = new Producer[String, String](configProducer)
   lazy val consumer = Consumer.createJavaConsumerConnector(configConsumer)
   lazy val executor = Executors.newFixedThreadPool(NUM_THREADS)
-
-  //TODO: find a better solution
-  // limit queue capacity to 1 to avoid loss of messages
-  lazy val consumerQ = new ArrayBlockingQueue[M](1)
+  lazy val consumerQ = new LinkedBlockingQueue[M]
 
   def configProducer(): ProducerConfig = {
     val props = new Properties
