@@ -1,7 +1,7 @@
 package imgdetect
 
 import imgretrieve.DiskImageKeeper
-import messages.{ DetectMessage, KafkaClient, TestMessage }
+import messages.{ DetectMessage, KafkaClient, StoreDetectedMessage }
 import messages.serializers.MessageSerializers
 
 import org.opencv.core.Core
@@ -9,7 +9,7 @@ import org.opencv.core.Core
 object RunDetector {
 
   val INTOPIC = "toDetect"
-  val OUTTOPIC = "TODO"
+  val OUTTOPIC = "toStoreDetected"
   val trainLogos = Array("google", "facebook", "hootsuite")
 
   def main(args: Array[String]) {
@@ -21,7 +21,7 @@ object RunDetector {
     val keeper = new DiskImageKeeper
     val detector = new LogoDetector(trainLogos)
     val kafkaConsumer = new KafkaClient[DetectMessage](INTOPIC)
-    val kafkaProducer = new KafkaClient[TestMessage](OUTTOPIC)
+    val kafkaProducer = new KafkaClient[StoreDetectedMessage](OUTTOPIC)
 
     kafkaConsumer.consumerStart()
 
@@ -29,7 +29,10 @@ object RunDetector {
       val msg = kafkaConsumer.receive()
       val matchedLogos = detector.detect(msg.imageLink)
 
-      matchedLogos.map(println)
+      if (!matchedLogos.isEmpty) {
+        val storeDetectedMsg = new StoreDetectedMessage(msg.imageLink, matchedLogos)
+        kafkaProducer.send(storeDetectedMsg)
+      }
     }
   }
 }

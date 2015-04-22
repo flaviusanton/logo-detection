@@ -20,7 +20,7 @@ object Main {
     println(Core.NATIVE_LIBRARY_NAME)
     System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
-    val detector = new LogoDetector(Array("bmw"))
-    detector.detect("http:/gjhgh/CArhUoTUwAAIfMu.jpg")
+    val detector = new LogoDetector(Array("google"))
+    detector.detect("http:/gjhgh/google3.jpeg")
   }
 }
