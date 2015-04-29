@@ -23,7 +23,7 @@ object RunDetector {
     val kafkaConsumer = new KafkaClient[DetectMessage](INTOPIC)
     val kafkaProducer = new KafkaClient[StoreDetectedMessage](OUTTOPIC)
 
-    kafkaConsumer.consumerStart()
+    //kafkaConsumer.consumerStart()
 
     while (true) {
       val msg = kafkaConsumer.receive()

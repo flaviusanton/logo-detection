@@ -18,7 +18,7 @@ object RunRetriever {
     val kafkaConsumer = new KafkaClient[DownloadMessage](INTOPIC)
     val kafkaProducer = new KafkaClient[DetectMessage](OUTTOPIC)
 
-    kafkaConsumer.consumerStart()
+    //kafkaConsumer.consumerStart()
 
     while (true) {
       val msg = kafkaConsumer.receive()

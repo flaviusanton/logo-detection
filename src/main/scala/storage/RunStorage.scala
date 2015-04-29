@@ -13,7 +13,7 @@ object RunStorage {
     val kafkaConsumer = new KafkaClient[StoreDetectedMessage](TOPIC)
     val db = MemDB
 
-    kafkaConsumer.consumerStart()
+    //kafkaConsumer.consumerStart()
 
     while (true) {
       val msg = kafkaConsumer.receive()

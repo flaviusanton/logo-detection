@@ -12,6 +12,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kafka.consumer.KafkaStream
 import java.util.concurrent.LinkedBlockingQueue
+import kafka.producer.Partitioner
 
 /**
  * This will be the Queue client for each component, having both producer and
@@ -19,12 +20,12 @@ import java.util.concurrent.LinkedBlockingQueue
  */
 class KafkaClient[M <: Message](topic: String)(implicit serializer: MessageJsonSerializer[M]) {
 
-  val NUM_THREADS = 4
+  val NUM_THREADS = 1 // shouldn't be more than 1 right now
+  val KAFKA_POLL_INTERVAL = 500 // ms
 
   lazy val producer = new Producer[String, String](configProducer)
   lazy val consumer = Consumer.createJavaConsumerConnector(configConsumer)
-  lazy val executor = Executors.newFixedThreadPool(NUM_THREADS)
-  lazy val consumerQ = new LinkedBlockingQueue[M]
+  lazy val stream = consumerStart().get(0) // only one stream, cause we have one thread
 
   def configProducer(): ProducerConfig = {
     val props = new Properties
@@ -32,6 +33,7 @@ class KafkaClient[M <: Message](topic: String)(implicit serializer: MessageJsonS
     props.put("metadata.broker.list", "localhost:9092")
     props.put("serializer.class", "kafka.serializer.StringEncoder")
     props.put("request.required.acks", "1")
+    props.put("partitioner.class", "messages.KafkaPartitioner")
 
     new ProducerConfig(props)
   }
@@ -51,7 +53,7 @@ class KafkaClient[M <: Message](topic: String)(implicit serializer: MessageJsonS
   def send(message: M) = {
     import MessageSerializers._
 
-    val data = new KeyedMessage[String, String](topic, serializer.serialize(message))
+    val data = new KeyedMessage[String, String](topic, "0", serializer.serialize(message))
     producer.send(data)
   }
 
@@ -59,28 +61,22 @@ class KafkaClient[M <: Message](topic: String)(implicit serializer: MessageJsonS
     messages.foreach(send(_))
   }
 
-  def consumerStart(): Unit = {
+  def consumerStart() = {
     val map = new HashMap[String, Integer]
     map.put(topic, NUM_THREADS)
     val consumerMap = consumer.createMessageStreams(map)
-    val streams = consumerMap.get(topic)
-
-    import scala.collection.JavaConversions._
-    streams.foreach(x => executor.submit(new Work(x)))
+    consumerMap.get(topic)
   }
 
-  def receive(): M = consumerQ.take
+  def receive(): M = {
+    val it = stream.iterator()
 
-  class Work(stream: KafkaStream[Array[Byte], Array[Byte]]) extends Runnable {
-
-    def run() {
-      val it = stream.iterator()
-
-      while (it.hasNext()) {
-        val rawMsg = it.next().message()
-        val msg: M = serializer.deserialize(new String(rawMsg.map(_.toChar)))
-        consumerQ.offer(msg)
-      }
+    while (!it.hasNext()) {
+      Thread.sleep(KAFKA_POLL_INTERVAL)
     }
+
+    val rawMsg = it.next().message()
+    serializer.deserialize(new String(rawMsg.map(_.toChar)))
   }
+
 }
