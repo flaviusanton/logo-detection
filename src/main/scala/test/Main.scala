@@ -12,11 +12,12 @@ object Main {
   val MAX_ITER = 1000
 
   def main(args: Array[String]) {
-    testCV
+    System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+    //testCV
+    testTemplateMatcher
   }
 
   def testCV = {
-    System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
     val f = new File("src/main/resources/train-logos/honda")
     val detector = new TemplateMatcher(f.listFiles.map(_.getAbsolutePath))
@@ -32,6 +33,25 @@ object Main {
       result.map(println(_))
 
       count += result.length
+    }
+
+    println(s"Identified: ${count}")
+  }
+
+  def testTemplateMatcher = {
+    val logoDir = new File("src/main/resources/train-logos/honda")
+    val detector = new TemplateDetector(Array("honda"))
+
+    //detector.tryAllMatches("query/honda/honda-civic-new-car-smell-537x334.jpg", logoDir.listFiles.map(_.getAbsolutePath))
+    val g = new File("/tmp/tw-images")
+    var count = 0
+
+    for (file <- g.listFiles) {
+      println(s"***** CHECKING ${file} *****")
+      val result = detector.tryAllMatches(file.getAbsolutePath, logoDir.listFiles.map(_.getAbsolutePath))
+
+      if (result)
+        count += 1
     }
 
     println(s"Identified: ${count}")
