@@ -11,7 +11,7 @@ object RunStorage {
     import MessageSerializers._
 
     val kafkaConsumer = new KafkaClient[StoreDetectedMessage](TOPIC)
-    val db = MemDB
+    val db = MongoDB
 
     //kafkaConsumer.consumerStart()
 

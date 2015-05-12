@@ -7,3 +7,5 @@ libraryDependencies += "io.spray" %%  "spray-json" % "1.3.1"
 //libraryDependencies += "org.json4s" %% "json4s-native" % "3.2.11"
 
 libraryDependencies += "org.apache.kafka" % "kafka_2.10" % "0.8.1.1" exclude("com.sun.jmx", "jmxri") exclude("com.sun.jdmk", "jmxtools") exclude("javax.jms", "jms")
+
+libraryDependencies += "org.mongodb" %% "casbah" % "2.8.1"
